@@ -88,7 +88,7 @@ internal sealed class MessageBasedCommunicationSample
         Console.WriteLine($" Sending message via non-streaming API: {((TextPart)userMessage.Parts[0]).Text}");
 
         // Send the message and get the response
-        Message agentResponse = (Message)await agentClient.SendMessageAsync(new MessageSendParams { Message = userMessage });
+        Message agentResponse = (Message)await agentClient.SendMessageAsync(new MessageSendParams { Message = (MessageExt)userMessage });
 
         // Display the response
         Console.WriteLine($" Received complete response from agent: {((TextPart)agentResponse.Parts[0]).Text}");
@@ -106,7 +106,7 @@ internal sealed class MessageBasedCommunicationSample
         Console.WriteLine($" Sending message via streaming API: {((TextPart)userMessage.Parts[0]).Text}");
 
         // Send the message and get the response as a stream
-        await foreach (SseItem<A2AEvent> sseItem in agentClient.SendMessageStreamingAsync(new MessageSendParams { Message = userMessage }))
+        await foreach (SseItem<A2AEvent> sseItem in agentClient.SendMessageStreamingAsync(new MessageSendParams { Message = (MessageExt)userMessage }))
         {
             Message agentResponse = (Message)sseItem.Data;
 

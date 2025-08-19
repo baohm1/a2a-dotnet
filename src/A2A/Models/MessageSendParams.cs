@@ -16,7 +16,7 @@ public sealed class MessageSendParams
     /// </summary>
     [JsonPropertyName("message")]
     [JsonRequired]
-    public Message Message { get; set; } = new Message();
+    public MessageExt Message { get; set; } = new MessageExt();
 
     /// <summary>
     /// Send message configuration.

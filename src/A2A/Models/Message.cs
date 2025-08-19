@@ -48,11 +48,18 @@ public sealed class MessageRoleConverter : JsonConverter<MessageRole>
         writer.WriteStringValue(role);
     }
 }
-
+#pragma warning disable CS1591 
+public sealed class MessageExt : Message
+{
+    [JsonPropertyName("kind")]
+    [JsonRequired]
+    public string Kind { get; set; } = "message";
+}
+#pragma warning restore CS1591 
 /// <summary>
 /// Represents a single message exchanged between user and agent.
 /// </summary>
-public sealed class Message : A2AResponse
+public class Message : A2AResponse
 {
     /// <summary>
     /// Message sender's role.
