@@ -1,4 +1,5 @@
 ﻿using A2A;
+using System.Net.ServerSentEvents;
 using System.Text.Json;
 
 namespace AgentClient.Samples;
@@ -51,17 +52,17 @@ internal sealed class TaskBasedCommunicationSample
         Console.WriteLine($"\n=== Running the {nameof(TaskBasedCommunicationSample)} sample ===");
 
         // 1. Start the local agent server to host the echo agent
-        await AgentServerUtils.StartLocalAgentServerAsync(agentName: "echotasks", port: 5101);
+        //await AgentServerUtils.StartLocalAgentServerAsync(agentName: "echotasks", port: 5101);
 
         // 2. Get the agent card
-        A2ACardResolver cardResolver = new(new Uri("http://localhost:5101"));
+        A2ACardResolver cardResolver = new(new Uri("http://10.110.146.236:9995"));
         AgentCard echoAgentCard = await cardResolver.GetAgentCardAsync();
 
         // 3. Create an A2A client to communicate with the echotasks agent using the URL from the agent card
-        A2AClient agentClient = new(new Uri(echoAgentCard.Url));
+        A2AClient agentClient = new(new Uri("http://10.110.146.236:9995"));
 
         // 4. Demo a short-lived task
-        await DemoShortLivedTaskAsync(agentClient);
+        //await DemoShortLivedTaskAsync(agentClient);
 
         // 5. Demo a long-running task
         await DemoLongRunningTaskAsync(agentClient);
@@ -74,7 +75,7 @@ internal sealed class TaskBasedCommunicationSample
     {
         Console.WriteLine("\nShort-lived Task");
 
-        Message userMessage = new()
+        MessageExt userMessage = new()
         {
             Parts = [new TextPart { Text = "Hello from a short-lived task sample!" }],
             Role = MessageRole.User
@@ -92,7 +93,7 @@ internal sealed class TaskBasedCommunicationSample
     {
         Console.WriteLine("\nLong-running Task");
 
-        Message userMessage = new()
+        MessageExt userMessage = new()
         {
             Parts = [new TextPart { Text = "Hello from a long-running task sample!" }],
             Role = MessageRole.User,
@@ -106,18 +107,13 @@ internal sealed class TaskBasedCommunicationSample
 
         // 1. Create a new task by sending the message to the agent
         Console.WriteLine($" Sending message to the agent: {((TextPart)userMessage.Parts[0]).Text}");
-        AgentTask agentResponse = (AgentTask)await agentClient.SendMessageAsync(new MessageSendParams { Message = (MessageExt)userMessage });
-        DisplayTaskDetails(agentResponse);
+        await foreach (SseItem<A2AEvent> sseItem in agentClient.SendMessageStreamingAsync(new MessageSendParams { Message = (MessageExt)userMessage }))
+        {
+            Message agentResponse = (Message)sseItem.Data;
 
-        // 2. Retrieve the task
-        Console.WriteLine($"\n Retrieving the task by ID: {agentResponse.Id}");
-        agentResponse = await agentClient.GetTaskAsync(agentResponse.Id);
-        DisplayTaskDetails(agentResponse);
-
-        // 3. Cancel the task
-        Console.WriteLine($"\n Cancel the task with ID: {agentResponse.Id}");
-        AgentTask cancelledTask = await agentClient.CancelTaskAsync(new TaskIdParams { Id = agentResponse.Id });
-        DisplayTaskDetails(cancelledTask);
+            // Display each part of the response as it arrives
+            Console.WriteLine($" Received streaming response chunk: {((TextPart)agentResponse.Parts[0]).Text}");
+        }
     }
 
     private static void DisplayTaskDetails(AgentTask agentResponse)

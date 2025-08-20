@@ -2,6 +2,7 @@ using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using System.Text.RegularExpressions;
 
 namespace A2A;
 
@@ -151,8 +152,15 @@ public sealed class A2AClient : IA2AClient
                 throw new InvalidOperationException("Failed to deserialize the event: Result is null.");
             }
 
-            return responseObject.Result.Deserialize(outputTypeInfo) ??
+            string jsonData = responseObject.Result.ToString();
+            // 简单替换：移除第二个 "kind": ...
+            jsonData = Regex.Replace(jsonData, @",\s*""kind""\s*:\s*""[^""]*""", "", RegexOptions.IgnoreCase);
+
+            return JsonSerializer.Deserialize(jsonData, outputTypeInfo) ??
                 throw new InvalidOperationException("Failed to deserialize the event.");
+
+            //return responseObject.Result.Deserialize(outputTypeInfo) ??
+            //    throw new InvalidOperationException("Failed to deserialize the event.");
         });
 
         await foreach (var item in sseParser.EnumerateAsync(cancellationToken))
