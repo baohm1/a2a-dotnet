@@ -159,7 +159,7 @@ public sealed class TaskManager : ITaskManager
             {
                 activity?.SetTag("task.found", false);
                 // If TaskId is specified, it must map to an existing task
-                throw new A2AException("Task not found.", A2AErrorCode.TaskNotFound);
+                //throw new A2AException("Task not found.", A2AErrorCode.TaskNotFound);
             }
         }
 
@@ -228,7 +228,7 @@ public sealed class TaskManager : ITaskManager
             {
                 activity?.SetTag("task.found", false);
                 // If TaskId is specified, it must map to an existing task
-                throw new A2AException("Task not found.", A2AErrorCode.TaskNotFound);
+                //throw new A2AException("Task not found.", A2AErrorCode.TaskNotFound);
             }
         }
 
